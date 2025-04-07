@@ -1,0 +1,272 @@
+
+local coordUI_player = game.Players.LocalPlayer
+local coordUI_character = coordUI_player.Character or coordUI_player.CharacterAdded:Wait()
+local coordUI_guiService = coordUI_player:WaitForChild("PlayerGui")
+
+-- Create the GUI
+local coordUI_screenGui = Instance.new("ScreenGui")
+coordUI_screenGui.Name = "CoordinatesGUI"
+coordUI_screenGui.ResetOnSpawn = false
+coordUI_screenGui.Parent = coordUI_guiService
+
+-- Create the main frame
+local coordUI_frame = Instance.new("Frame")
+coordUI_frame.Size = UDim2.new(0, 250, 0, 120)
+coordUI_frame.Position = UDim2.new(0, 20, 0, 20)
+coordUI_frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+coordUI_frame.BorderSizePixel = 0
+coordUI_frame.Active = true
+coordUI_frame.Draggable = true
+coordUI_frame.Parent = coordUI_screenGui
+
+-- UICorner for rounded edges
+local coordUI_corner = Instance.new("UICorner")
+coordUI_corner.CornerRadius = UDim.new(0, 10)
+coordUI_corner.Parent = coordUI_frame
+
+-- Close button
+local coordUI_closeButton = Instance.new("TextButton")
+coordUI_closeButton.Size = UDim2.new(0, 24, 0, 24)
+coordUI_closeButton.Position = UDim2.new(1, -28, 0, 4)
+coordUI_closeButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+coordUI_closeButton.Text = "X"
+coordUI_closeButton.TextColor3 = Color3.new(1, 1, 1)
+coordUI_closeButton.Font = Enum.Font.SourceSansBold
+coordUI_closeButton.TextSize = 18
+coordUI_closeButton.Parent = coordUI_frame
+
+local coordUI_closeCorner = Instance.new("UICorner")
+coordUI_closeCorner.CornerRadius = UDim.new(0, 6)
+coordUI_closeCorner.Parent = coordUI_closeButton
+
+-- Create labels
+local coordUI_xLabel = Instance.new("TextLabel")
+coordUI_xLabel.Size = UDim2.new(1, -20, 0, 30)
+coordUI_xLabel.Position = UDim2.new(0, 10, 0, 35)
+coordUI_xLabel.BackgroundTransparency = 1
+coordUI_xLabel.TextColor3 = Color3.new(1, 1, 1)
+coordUI_xLabel.Font = Enum.Font.Code
+coordUI_xLabel.TextSize = 18
+coordUI_xLabel.TextXAlignment = Enum.TextXAlignment.Left
+coordUI_xLabel.Parent = coordUI_frame
+
+local coordUI_yLabel = coordUI_xLabel:Clone()
+coordUI_yLabel.Position = UDim2.new(0, 10, 0, 60)
+coordUI_yLabel.Parent = coordUI_frame
+
+local coordUI_zLabel = coordUI_xLabel:Clone()
+coordUI_zLabel.Position = UDim2.new(0, 10, 0, 85)
+coordUI_zLabel.Parent = coordUI_frame
+
+-- Update loop
+game:GetService("RunService").RenderStepped:Connect(function()
+	local coordUI_rootPart = coordUI_player.Character and coordUI_player.Character:FindFirstChild("HumanoidRootPart")
+	if coordUI_rootPart then
+		local coordUI_pos = coordUI_rootPart.Position
+		coordUI_xLabel.Text = "X: " .. math.floor(coordUI_pos.X)
+		coordUI_yLabel.Text = "Y: " .. math.floor(coordUI_pos.Y)
+		coordUI_zLabel.Text = "Z: " .. math.floor(coordUI_pos.Z)
+	end
+end)
+-- Create a part at the origin to indicate (0, 0, 0)
+local coordUI_originPart = Instance.new("Part")
+coordUI_originPart.Name = "OriginIndicator"
+coordUI_originPart.Anchored = true
+coordUI_originPart.CanCollide = false
+coordUI_originPart.Size = Vector3.new(1, 1, 1)
+coordUI_originPart.Position = Vector3.new(0, 0.5, 0)
+coordUI_originPart.Color = Color3.fromRGB(255, 0, 0)
+coordUI_originPart.Material = Enum.Material.Neon
+coordUI_originPart.Transparency = 0
+coordUI_originPart.TopSurface = Enum.SurfaceType.Smooth
+coordUI_originPart.BottomSurface = Enum.SurfaceType.Smooth
+coordUI_originPart.Parent = workspace
+
+-- Add a BillboardGui to label it
+local coordUI_originBillboard = Instance.new("BillboardGui")
+coordUI_originBillboard.Size = UDim2.new(0, 200, 0, 50)
+coordUI_originBillboard.StudsOffset = Vector3.new(0, 2, 0)
+coordUI_originBillboard.AlwaysOnTop = true
+coordUI_originBillboard.Parent = coordUI_originPart
+
+local coordUI_originLabel = Instance.new("TextLabel")
+coordUI_originLabel.Size = UDim2.new(0.5, 0, 0.5, 0)
+coordUI_originLabel.Position = UDim2.new(0.25, 0, 0.25, 0)
+coordUI_originLabel.BackgroundTransparency = 1
+coordUI_originLabel.Text = "Origin"
+coordUI_originLabel.TextColor3 = Color3.new(1, 0.2, 0.2)
+coordUI_originLabel.TextStrokeTransparency = 0
+coordUI_originLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
+coordUI_originLabel.TextScaled = true
+coordUI_originLabel.Font = Enum.Font.SourceSansBold
+coordUI_originLabel.Parent = coordUI_originBillboard
+
+coordUI_closeButton.MouseButton1Click:Connect(function()
+	coordUI_screenGui:Destroy()
+	coordUI_originPart:Destroy()
+	coordUI_highlightsEnabled = false
+	coordUI_toggleHighlights() -- Force cleanup
+end)
+
+-- Highlight Players Button
+local coordUI_highlightButton = Instance.new("TextButton")
+coordUI_highlightButton.Size = UDim2.new(0, 120, 0, 28)
+coordUI_highlightButton.Position = UDim2.new(0, 10, 0, 4)
+coordUI_highlightButton.BackgroundColor3 = Color3.fromRGB(50, 150, 250)
+coordUI_highlightButton.Text = "Highlight Players"
+coordUI_highlightButton.TextColor3 = Color3.new(1, 1, 1)
+coordUI_highlightButton.Font = Enum.Font.SourceSansBold
+coordUI_highlightButton.TextSize = 16
+coordUI_highlightButton.Parent = coordUI_frame
+
+local coordUI_highlightCorner = Instance.new("UICorner")
+coordUI_highlightCorner.CornerRadius = UDim.new(0, 6)
+coordUI_highlightCorner.Parent = coordUI_highlightButton
+
+local coordUI_highlightsEnabled = false
+local coordUI_highlightedPlayers = {}
+
+local function coordUI_createLabelForPlayer(plr)
+	local billboard = Instance.new("BillboardGui")
+	billboard.Name = "CoordUI_PlayerLabel"
+	billboard.Size = UDim2.new(0, 240, 0, 50)
+	billboard.StudsOffset = Vector3.new(0, 3, 0)
+	billboard.AlwaysOnTop = true
+
+	local background = Instance.new("Frame")
+	background.Size = UDim2.new(1, 0, 1, 0)
+	background.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+	background.BackgroundTransparency = 0.3
+	background.Parent = billboard
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 6)
+	corner.Parent = background
+
+	-- Profile Image
+	local imageLabel = Instance.new("ImageLabel")
+	imageLabel.Size = UDim2.new(0, 40, 0, 40)
+	imageLabel.Position = UDim2.new(0, 5, 0.5, -20)
+	imageLabel.BackgroundTransparency = 1
+	imageLabel.ScaleType = Enum.ScaleType.Fit
+	imageLabel.Parent = background
+
+	-- Fetch and set the player's headshot
+	local success, content = pcall(function()
+		return game.Players:GetUserThumbnailAsync(plr.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
+	end)
+
+	if success then
+		imageLabel.Image = content
+	else
+		imageLabel.Image = "rbxassetid://0" -- fallback if failed
+	end
+
+	-- Text label next to image
+	local textLabel = Instance.new("TextLabel")
+	textLabel.Size = UDim2.new(1, -50, 1, 0)
+	textLabel.Position = UDim2.new(0, 50, 0, 0)
+	textLabel.BackgroundTransparency = 1
+	textLabel.TextColor3 = Color3.new(1, 1, 1)
+	textLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
+	textLabel.TextStrokeTransparency = 0.4
+	textLabel.TextScaled = true
+	textLabel.Font = Enum.Font.SourceSansBold
+	textLabel.TextXAlignment = Enum.TextXAlignment.Left
+	textLabel.Text = plr.DisplayName .. " [@" .. plr.Name .. "]"
+	textLabel.Parent = background
+
+	return billboard
+end
+
+
+local function coordUI_toggleHighlights()
+	coordUI_highlightsEnabled = not coordUI_highlightsEnabled
+
+	if coordUI_highlightsEnabled then
+		for _, plr in pairs(game.Players:GetPlayers()) do
+			if plr ~= coordUI_player and plr.Character and not coordUI_highlightedPlayers[plr] then
+				-- Highlight
+				local highlight = Instance.new("Highlight")
+				highlight.FillColor = Color3.fromRGB(255, 255, 255)
+				highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+				highlight.Parent = plr.Character
+
+				-- Billboard name tag
+				local head = plr.Character:FindFirstChild("Head")
+				if head then
+					local label = coordUI_createLabelForPlayer(plr)
+					label.Parent = head
+				end
+
+				coordUI_highlightedPlayers[plr] = true
+			end
+		end
+
+		-- Listen for new players
+		game.Players.PlayerAdded:Connect(function(newPlayer)
+			newPlayer.CharacterAdded:Connect(function(char)
+				if coordUI_highlightsEnabled and newPlayer ~= coordUI_player then
+					local highlight = Instance.new("Highlight")
+					highlight.FillColor = Color3.fromRGB(255, 255, 255)
+					highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+					highlight.Parent = char
+
+					local head = char:WaitForChild("Head", 5)
+					if head then
+						local label = coordUI_createLabelForPlayer(newPlayer)
+						label.Parent = head
+					end
+
+					coordUI_highlightedPlayers[newPlayer] = true
+				end
+			end)
+		end)
+	else
+		for _, plr in pairs(game.Players:GetPlayers()) do
+			if plr ~= coordUI_player and plr.Character then
+				-- Remove highlight
+				local existingHighlight = plr.Character:FindFirstChildOfClass("Highlight")
+				if existingHighlight then
+					existingHighlight:Destroy()
+				end
+
+				-- Remove label
+				local head = plr.Character:FindFirstChild("Head")
+				if head then
+					local label = head:FindFirstChild("CoordUI_PlayerLabel")
+					if label then
+						label:Destroy()
+					end
+				end
+			end
+		end
+
+		coordUI_highlightedPlayers = {}
+	end
+end
+-- Listen for players joining
+game.Players.PlayerAdded:Connect(function(newPlayer)
+	newPlayer.CharacterAdded:Connect(function(char)
+		if coordUI_highlightsEnabled and newPlayer ~= coordUI_player then
+			local highlight = Instance.new("Highlight")
+			highlight.FillColor = Color3.fromRGB(255, 255, 0)
+			highlight.OutlineColor = Color3.fromRGB(0, 0, 0)
+			highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+			highlight.Parent = char
+
+			local head = char:WaitForChild("Head", 5)
+			if head then
+				local label = coordUI_createLabelForPlayer(newPlayer)
+				label.Parent = head
+			end
+
+			coordUI_highlightedPlayers[newPlayer] = true
+		end
+	end)
+end)
+game.Players.PlayerRemoving:Connect(function(player)
+	coordUI_highlightedPlayers[player] = nil
+end)
+
+coordUI_highlightButton.MouseButton1Click:Connect(coordUI_toggleHighlights)
